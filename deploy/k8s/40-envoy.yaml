@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+  namespace: alpaix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: envoy
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+        - name: envoy
+          image: envoyproxy/envoy:v1.31.0
+          args:
+            - -c
+            - /etc/envoy/envoy.yaml
+            - --service-node
+            - envoy-kind-1
+            - --service-cluster
+            - alpaix-demo
+          ports:
+            - name: http
+              containerPort: 10000
+            - name: admin
+              containerPort: 9901
+          volumeMounts:
+            - name: envoy-bootstrap
+              mountPath: /etc/envoy
+      volumes:
+        - name: envoy-bootstrap
+          configMap:
+            name: envoy-bootstrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  namespace: alpaix
+spec:
+  type: NodePort
+  selector:
+    app: envoy
+  ports:
+    - name: http
+      port: 10000
+      targetPort: http
+      nodePort: 30080
+    - name: admin
+      port: 9901
+      targetPort: admin
+      nodePort: 30901

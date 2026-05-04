@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpaix-xds
+  namespace: alpaix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpaix-xds
+  template:
+    metadata:
+      labels:
+        app: alpaix-xds
+    spec:
+      containers:
+        - name: xds
+          # Replace with your own control-plane image once you implement it.
+          image: ghcr.io/alpaix/alpaix-control-plane:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: xds-grpc
+              containerPort: 18000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpaix-xds
+  namespace: alpaix
+spec:
+  selector:
+    app: alpaix-xds
+  ports:
+    - name: grpc
+      port: 18000
+      targetPort: xds-grpc
